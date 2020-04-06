@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'Homepage.dart';
 import 'Register.dart';
 
-// Create login state
+// Create login state / Create the context
 class Login extends StatefulWidget {
   @override
   _LoginState createState() => _LoginState();
@@ -50,10 +50,13 @@ class _LoginState extends State<Login> {
             ),
             RaisedButton(
                 onPressed: (){
-                  if (verifyLogin(_emailController.text, _passwordController.text))
+                  if (verifyLogin(_emailController.text, _passwordController.text)){
                     Navigator.push(
                         context, MaterialPageRoute(
-                        builder: (context) => Homepage())); // Launch login experience
+                        builder: (context) => Homepage()
+                        )
+                    );
+                  }
                 },
                 child: Text('Login')
             ),
