@@ -53,7 +53,7 @@ class _LoginState extends State<Login> {
                   if (verifyLogin(_emailController.text, _passwordController.text)){
                     Navigator.push(
                         context, MaterialPageRoute(
-                        builder: (context) => Homepage()
+                        builder: (context) => MainPage()
                         )
                     );
                   }

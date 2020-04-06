@@ -2,8 +2,33 @@ import 'package:flutter/material.dart';
 import 'Settings.dart';
 import 'Profile.dart';
 
-class Homepage extends StatelessWidget{
+class MainPage extends StatefulWidget{
+  Homepage createState() => Homepage();
+}
 
+class Homepage extends State<MainPage>{
+  int _selectedIndex = 0;
+  static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
+  static const List<Widget> _widgetOptions = <Widget>[
+    Text(
+      'Overview',
+      style: optionStyle,
+    ),
+    Text(
+      'Sports',
+      style: optionStyle,
+    ),
+    Text(
+      'More Sports',
+      style: optionStyle,
+    ),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
   void welcome(BuildContext context){
     final snackBar = SnackBar(content: Text("Welcome [name here]!"));
     Scaffold.of(context).showSnackBar(snackBar);
@@ -14,30 +39,11 @@ class Homepage extends StatelessWidget{
         theme: ThemeData(
           primarySwatch: Colors.deepOrange,
         ),
-      home: DefaultTabController(
-          length: 3,
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text('Home'),
-              bottom: TabBar(
-                  tabs: [
-                    // Overview
-                    Tab(icon: Icon(Icons.library_books)),
-                    // Sports
-                    Tab(icon: Icon(Icons.directions_run)),
-                    // More sports
-                    Tab(icon: Icon(Icons.access_alarm))
-                  ]
-              ),
-            ),
-            body: TabBarView(
-                children: [
-                Text("Overview"),
-                Text("Sports"),
-                Text("More sports")
-              ]
-            ),
-            drawer: Drawer(
+      home: Scaffold(
+          appBar: AppBar(
+            title: Text('Home'),
+          ),
+          drawer: Drawer(
                 child: ListView(
                     padding: EdgeInsets.zero,
                     children: <Widget>[
@@ -80,6 +86,27 @@ class Homepage extends StatelessWidget{
                     ]
                 )
             ),
+          body: Center(
+            child: _widgetOptions.elementAt(_selectedIndex),
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                title: Text('Overview'),
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.school),
+                title: Text('Sports'),
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.business),
+                title: Text('More sports'),
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: Colors.deepOrange,
+            onTap: _onItemTapped,
           )
       )
     );
