@@ -54,7 +54,8 @@ class Register extends StatelessWidget{
                 child: TextField(
                     controller: _firstNameController,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(), labelText: 'First Name',
+                      border: OutlineInputBorder(),
+                      labelText: 'First Name',
                     )
                 )
             ),
@@ -63,7 +64,8 @@ class Register extends StatelessWidget{
                 child: TextField(
                     controller: _lastNameController,
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(), labelText: 'Last Name',
+                      border: OutlineInputBorder(),
+                      labelText: 'Last Name',
                     )
                 )
             ),
