@@ -29,6 +29,8 @@ class Homepage extends State<MainPage>{
       _selectedIndex = index;
     });
   }
+
+  // TODO: set this up
   void welcome(BuildContext context){
     final snackBar = SnackBar(content: Text("Welcome [name here]!"));
     Scaffold.of(context).showSnackBar(snackBar);
