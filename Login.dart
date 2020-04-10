@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'Homepage.dart';
 import 'Register.dart';
+import 'models/LogInfo.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 // Create login state / Create the context
 class Login extends StatefulWidget {
@@ -12,12 +16,30 @@ class _LoginState extends State<Login> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // TODO: Verify email and password are in the db.
+  Future<LogInfo> log(String email, String password) async {
+    final http.Response response = await http.post(
+      'http://localhost:8081/api/users/login',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'email': email,
+        'password': password,
+      }),
+    );
+    if (response.statusCode == 200) {
+      print("asdfdsaf");
+      return LogInfo.fromJson(json.decode(response.body));
+    } else {
+
+      throw Exception('Failed');
+    }
+  }
+
   bool verifyLogin(String email, String password){
 
-    // if (email is in the db)
-    // if (password is the correct password for the email)
-    // return true;
+    //log(email, password);
+
     return true;
   }
 
