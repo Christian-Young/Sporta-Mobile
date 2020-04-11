@@ -15,30 +15,28 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  Future<LogInfo> FutureLogInfo;
 
-  Future<LogInfo> log(String email, String password) async {
-    final http.Response response = await http.post(
-      'http://localhost:8081/api/users/login',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'email': email,
-        'password': password,
-      }),
-    );
+  @override
+  void initState() {
+    super.initState();
+    //FutureLogInfo = log();
+  }
+
+  Future<LogInfo> log() async {
+    final http.Response response = await http.get(
+        'http://localhost:8081/api/users/login');
+
     if (response.statusCode == 200) {
-      print("asdfdsaf");
+      // Return the future of the response.
       return LogInfo.fromJson(json.decode(response.body));
     } else {
 
-      throw Exception('Failed');
+      throw Exception('Failed to load login credentials');
     }
   }
 
   bool verifyLogin(String email, String password){
-
-    //log(email, password);
 
     return true;
   }
@@ -75,7 +73,7 @@ class _LoginState extends State<Login> {
                   if (verifyLogin(_emailController.text, _passwordController.text)){
                     Navigator.push(
                         context, MaterialPageRoute(
-                        builder: (context) => MainPage()
+                        builder: (context) => Homepage()
                         )
                     );
                   }
