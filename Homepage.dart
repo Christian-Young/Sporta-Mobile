@@ -1,27 +1,38 @@
 import 'package:flutter/material.dart';
 import 'Settings.dart';
 import 'Profile.dart';
+import 'CreateEvent.dart';
 
-class MainPage extends StatefulWidget{
-  Homepage createState() => Homepage();
+class Homepage extends StatefulWidget{
+  _Homepage createState() => _Homepage();
 }
 
-class Homepage extends State<MainPage>{
+class _Homepage extends State<Homepage>{
   int _selectedIndex = 0;
-  static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Overview',
-      style: optionStyle,
+  static const TextStyle optionStyle = TextStyle(
+      fontSize: 30,
+      fontWeight: FontWeight.bold
+  );
+
+  static List<Widget> _widgetOptions = <Widget>[
+    Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Text("Welcome [name here] !", style: optionStyle)
+        ]
     ),
-    Text(
-      'Sports',
-      style: optionStyle,
+    Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          Text("Personal", style: optionStyle),
+        ]
     ),
-    Text(
-      'More Sports',
-      style: optionStyle,
-    ),
+    Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget> [
+          Text("Events", style: optionStyle),
+        ]
+    )
   ];
 
   void _onItemTapped(int index) {
@@ -30,11 +41,12 @@ class Homepage extends State<MainPage>{
     });
   }
 
-  // TODO: set this up
-  void welcome(BuildContext context){
+  /*
+  void welcome(){
     final snackBar = SnackBar(content: Text("Welcome [name here]!"));
-    Scaffold.of(context).showSnackBar(snackBar);
+    scaffoldKey.currentState.showSnackBar(snackBar);
   }
+   */
 
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -90,6 +102,7 @@ class Homepage extends State<MainPage>{
             ),
           body: Center(
             child: _widgetOptions.elementAt(_selectedIndex),
+
           ),
           bottomNavigationBar: BottomNavigationBar(
             items: const <BottomNavigationBarItem>[
@@ -98,19 +111,30 @@ class Homepage extends State<MainPage>{
                 title: Text('Overview'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.school),
-                title: Text('Sports'),
+                icon: Icon(Icons.person),
+                title: Text('Personal'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.business),
-                title: Text('More sports'),
+                icon: Icon(Icons.library_books),
+                title: Text('Events'),
               ),
             ],
             currentIndex: _selectedIndex,
             selectedItemColor: Colors.deepOrange,
             onTap: _onItemTapped,
-          )
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                  context, MaterialPageRoute(
+                  builder: (context) => CreateEvent()
+                  )
+              );
+              },
+              child: Icon(Icons.add),
+              backgroundColor: Colors.deepOrange,
       )
+    )
     );
   }
 }
