@@ -4,19 +4,25 @@ import 'models/RegInfo.dart';
 import 'dart:async';
 import 'dart:convert';
 
-class Register extends StatelessWidget{
+class Register extends StatefulWidget{
+  @override
+  _RegisterState createState() => _RegisterState();
+}
+
+class _RegisterState extends State<Register>{
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  Future<RegInfo> FutureRegInfo;
 
   // Dialog box
-  void _showDialog(BuildContext context, String text){
+  void _showDialog(BuildContext context, String message){
     showDialog(
         context: context,
         builder: (BuildContext context){
           return AlertDialog(
-              title: new Text(text),
+              title: new Text(message),
               actions: <Widget>[
                 new FlatButton(
                     child: new Text("Close"),
@@ -33,9 +39,7 @@ class Register extends StatelessWidget{
   Future<RegInfo> reg(String firstname, String lastname, String email, String password) async {
     final http.Response response = await http.post(
       'http://localhost:8081/api/users/register',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
+
       body: jsonEncode(<String, String>{
         'firstname': firstname,
         'lastname': lastname,
@@ -43,6 +47,7 @@ class Register extends StatelessWidget{
         'password': password,
       }),
     );
+
     if (response.statusCode == 200) {
       print("Registration successful");
       return RegInfo.fromJson(json.decode(response.body));
@@ -64,7 +69,7 @@ class Register extends StatelessWidget{
     }
 
     // Register
-    //reg(firstname, lastname, email, password);
+    // FutureRegInfo = reg(firstname, lastname, email, password);
 
     return true;
   }
