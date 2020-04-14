@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'models/RegInfo.dart';
 import 'dart:async';
 import 'dart:convert';
+import 'ShowDialog.dart';
+import 'Session.dart';
 
 class Register extends StatefulWidget{
   @override
@@ -14,35 +16,12 @@ class _RegisterState extends State<Register>{
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  Future<RegInfo> FutureRegInfo;
-  http.Response _response;
-
-  // Dialog box
-  void _showDialog(BuildContext context, String message){
-    showDialog(
-        context: context,
-        builder: (BuildContext context){
-          return AlertDialog(
-              title: new Text(message),
-              actions: <Widget>[
-                new FlatButton(
-                    child: new Text("Close"),
-                    onPressed: (){
-                      Navigator.of(context).pop();
-                    }
-                )
-              ]
-          );
-        }
-    );
-  }
+  Future<RegInfo> _FutureRegInfo;
 
   Future<RegInfo> reg(String firstname, String lastname, String email, String password) async {
-    _response = await http.post(
+    final http.Response _response = await http.post(
       'http://localhost3000.us-east-2.elasticbeanstalk.com/api/users/register',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
+      headers: headers,
       body: jsonEncode(<String, String>{
         'firstname': firstname,
         'lastname': lastname,
@@ -51,31 +30,21 @@ class _RegisterState extends State<Register>{
       }),
     );
 
+    // If successful registration, navigate back to login.
     if (_response.statusCode == 200){
+      Navigator.pop(context);
+      DialogPopUp(context, "Account created!");
       return RegInfo.fromJson(json.decode(_response.body));
     }
-
+    // If there was an error with registration. Email taken, email invalid, etc.
     else if (_response.statusCode == 400) {
-      _showDialog(context, "Failed to register.");
+      DialogPopUp(context, "Failed to register.");
     }
+    // If it's some other error that the user doesn't need to know about.
     else {
         print(_response.statusCode);
         print(_response.body);
     }
-  }
-
-  bool verifyRegistration(String firstname, String lastname, String email, String password, BuildContext context){
-
-    // Checks if all fields are filled in.
-    if (firstname.length == 0 || lastname.length == 0 || email.length == 0 || password.length == 0){
-      _showDialog(context, "Please fill in all fields.");
-      return false;
-    }
-
-    // Register API call.
-    FutureRegInfo = reg(firstname, lastname, email, password);
-
-    return (_response.statusCode == 200);
   }
 
   Widget build(BuildContext context) {
@@ -125,11 +94,10 @@ class _RegisterState extends State<Register>{
             ),
             RaisedButton(
                 onPressed: () {
-                  if (verifyRegistration(_firstNameController.text, _lastNameController.text,
-                      _emailController.text, _passwordController.text, context)) {
-                    Navigator.pop(context);
-                    _showDialog(context, "Account created!");
-                  }
+                  setState(() {
+                    _FutureRegInfo = reg(_firstNameController.text, _lastNameController.text,
+                        _emailController.text, _passwordController.text);
+                  });
                 },
                 child: Text('Register')
             ),
