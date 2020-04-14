@@ -9,6 +9,7 @@ class Homepage extends StatefulWidget{
 
 class _Homepage extends State<Homepage>{
   int _selectedIndex = 0;
+
   static const TextStyle optionStyle = TextStyle(
       fontSize: 30,
       fontWeight: FontWeight.bold
@@ -47,6 +48,22 @@ class _Homepage extends State<Homepage>{
     scaffoldKey.currentState.showSnackBar(snackBar);
   }
    */
+
+  // Displays the floating action button if we're on the events page.
+  FloatingActionButton isIndex2() {
+    if (_selectedIndex == 2)
+      return FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(
+              builder: (context) => CreateEvent()
+          )
+          );
+        },
+        child: Icon(Icons.add),
+        backgroundColor: Colors.deepOrange,
+      );
+  }
 
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -123,18 +140,8 @@ class _Homepage extends State<Homepage>{
             selectedItemColor: Colors.deepOrange,
             onTap: _onItemTapped,
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                  context, MaterialPageRoute(
-                  builder: (context) => CreateEvent()
-                  )
-              );
-              },
-              child: Icon(Icons.add),
-              backgroundColor: Colors.deepOrange,
+          floatingActionButton: isIndex2(),
       )
-    )
     );
   }
 }
