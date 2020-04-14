@@ -42,13 +42,6 @@ class _Homepage extends State<Homepage>{
     });
   }
 
-  /*
-  void welcome(){
-    final snackBar = SnackBar(content: Text("Welcome [name here]!"));
-    scaffoldKey.currentState.showSnackBar(snackBar);
-  }
-   */
-
   // Displays the floating action button if we're on the events page.
   FloatingActionButton isIndex2() {
     if (_selectedIndex == 2)
@@ -64,6 +57,16 @@ class _Homepage extends State<Homepage>{
         backgroundColor: Colors.deepOrange,
       );
   }
+
+  /*
+  @override
+  void initState()
+  {
+    super.initState();
+    final snackBar = SnackBar(content: Text("Welcome [name here]!"));
+    scaffoldKey.currentState.showSnackBar(snackBar);
+  }
+  */
 
   Widget build(BuildContext context) {
     return MaterialApp(
