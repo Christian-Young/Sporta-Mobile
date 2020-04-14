@@ -5,6 +5,8 @@ import 'models/LogInfo.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'ShowDialog.dart';
+import 'Session.dart';
 
 // Create login state / Create the context
 class Login extends StatefulWidget {
@@ -15,65 +17,35 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  Future<LogInfo> FutureLogInfo;
-  http.Response _response;
-
-  // Dialog box
-  void _showDialog(BuildContext context, String message){
-    showDialog(
-        context: context,
-        builder: (BuildContext context){
-          return AlertDialog(
-              title: new Text(message),
-              actions: <Widget>[
-                new FlatButton(
-                    child: new Text("Close"),
-                    onPressed: (){
-                      Navigator.of(context).pop();
-                    }
-                )
-              ]
-          );
-        }
-    );
-  }
+  Future<LogInfo> _FutureLogInfo;
 
   Future<LogInfo> log(String email, String password) async {
-    _response = await http.post(
+    final http.Response _response = await http.post(
         'http://localhost3000.us-east-2.elasticbeanstalk.com/api/users/login',
-      headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-      },
+      headers: headers,
       body: jsonEncode(<String, String>{
         'email': email,
         'password': password,
       }),
     );
 
+    // If successful login, navigate to homepage.
     if (_response.statusCode == 200) {
+      updateCookie(_response);
+      Navigator.push(
+          context, MaterialPageRoute(
+          builder: (context) => Homepage()));
       return LogInfo.fromJson(json.decode(_response.body));
     }
+    // 400 = incorrect credentials.
     else if (_response.statusCode == 400) {
-      _showDialog(context, "Incorrect credentials.");
+      DialogPopUp(context, "Incorrect credentials.");
     }
+    // If it's some other error that the user doesn't need to know about.
     else {
       print(_response.statusCode);
       print(_response.body);
     }
-  }
-
-  bool verifyLogin(String email, String password){
-
-    // Checks if all fields are filled in.
-    if (email.length == 0 || password.length == 0){
-      _showDialog(context, "Please fill in all fields.");
-      return false;
-    }
-
-    // Login API call.
-    FutureLogInfo = log(email, password);
-
-    return (_response.statusCode == 200);
   }
 
   Widget build(BuildContext context) {
@@ -104,14 +76,10 @@ class _LoginState extends State<Login> {
                 )
             ),
             RaisedButton(
-                onPressed: (){
-                  if (verifyLogin(_emailController.text, _passwordController.text)){
-                    Navigator.push(
-                        context, MaterialPageRoute(
-                        builder: (context) => Homepage()
-                    )
-                    );
-                  }
+                onPressed: () {
+                  setState(() {
+                    _FutureLogInfo = log(_emailController.text, _passwordController.text);
+                  });
                 },
                 child: Text('Login')
             ),
