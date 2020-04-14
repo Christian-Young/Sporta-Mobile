@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'models/UserInfo.dart';
 
 class Profile extends StatefulWidget {
   @override
@@ -6,6 +10,24 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  Future<UserInfo> FutureProfileInfo = user();
+
+  static Future<UserInfo> user() async {
+    final http.Response _response = await http.get(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/users/detail/get',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    if (_response.statusCode == 200) {
+      // Return the future of the _response.
+      return UserInfo.fromJson(json.decode(_response.body));
+    } else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
 
   // Text controllers for the profile information fields
   final _firstNameController = TextEditingController(text: 'first name init');
@@ -13,13 +35,14 @@ class _ProfileState extends State<Profile> {
   final _emailController = TextEditingController(text: 'email init');
   final _heightController = TextEditingController(text: 'height init');
   final _ageController = TextEditingController(text: 'age init');
+  final _weightController = TextEditingController(text: 'weight init');
 
   // Keyboard focus nodes for each field
   List<FocusNode> _nodes = [new FocusNode(), new FocusNode(), new FocusNode(),
-                            new FocusNode(), new FocusNode()];
+                            new FocusNode(), new FocusNode(), new FocusNode()];
 
   // ReadOnly booleans for each field
-  List<bool> _ReadOnlybools = [true, true, true, true, true];
+  List<bool> _ReadOnlybools = [true, true, true, true, true, true];
 
   // Dialog box
   void _showDialog(BuildContext context, String message, int enable){
@@ -160,6 +183,27 @@ class _ProfileState extends State<Profile> {
                         suffixIcon: Icon(Icons.create),
                         border: OutlineInputBorder(),
                         labelText: 'Age',
+                      )
+                  )
+              ),
+              Padding(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                  child: TextField(
+                      onTap: () {
+                        setState(() {
+                          _showDialog(context, "Edit weight?", 5);
+                          FocusScope.of(context).requestFocus(_nodes.elementAt(5));
+                        });
+                      },
+                      // Sets the field back to read-only
+                      onSubmitted: (e){setState(() {_ReadOnlybools[5] = true;});},
+                      focusNode: _nodes.elementAt(5),
+                      readOnly: _ReadOnlybools.elementAt(5),
+                      controller: _weightController,
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(Icons.create),
+                        border: OutlineInputBorder(),
+                        labelText: 'Weight',
                       )
                   )
               ),
