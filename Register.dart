@@ -15,6 +15,7 @@ class _RegisterState extends State<Register>{
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   Future<RegInfo> FutureRegInfo;
+  http.Response _response;
 
   // Dialog box
   void _showDialog(BuildContext context, String message){
@@ -37,9 +38,11 @@ class _RegisterState extends State<Register>{
   }
 
   Future<RegInfo> reg(String firstname, String lastname, String email, String password) async {
-    final http.Response response = await http.post(
-      'http://localhost:8081/api/users/register',
-
+    _response = await http.post(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/users/register',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
       body: jsonEncode(<String, String>{
         'firstname': firstname,
         'lastname': lastname,
@@ -48,30 +51,31 @@ class _RegisterState extends State<Register>{
       }),
     );
 
-    if (response.statusCode == 200) {
-      print("Registration successful");
-      return RegInfo.fromJson(json.decode(response.body));
-    } else {
+    if (_response.statusCode == 200){
+      return RegInfo.fromJson(json.decode(_response.body));
+    }
 
-      throw Exception('Failed');
+    else if (_response.statusCode == 400) {
+      _showDialog(context, "Failed to register.");
+    }
+    else {
+        print(_response.statusCode);
+        print(_response.body);
     }
   }
 
   bool verifyRegistration(String firstname, String lastname, String email, String password, BuildContext context){
 
+    // Checks if all fields are filled in.
     if (firstname.length == 0 || lastname.length == 0 || email.length == 0 || password.length == 0){
       _showDialog(context, "Please fill in all fields.");
       return false;
     }
-    else if (password.length < 5){
-      _showDialog(context, "Password too short.");
-      return false;
-    }
 
-    // Register
-    // FutureRegInfo = reg(firstname, lastname, email, password);
+    // Register API call.
+    FutureRegInfo = reg(firstname, lastname, email, password);
 
-    return true;
+    return (_response.statusCode == 200);
   }
 
   Widget build(BuildContext context) {
