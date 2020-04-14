@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'models/UserInfo.dart';
+import 'Session.dart';
 
 class Profile extends StatefulWidget {
   @override
@@ -15,14 +16,12 @@ class _ProfileState extends State<Profile> {
   static Future<UserInfo> user() async {
     final http.Response _response = await http.get(
       'http://localhost3000.us-east-2.elasticbeanstalk.com/api/users/detail/get',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
+      headers: headers,
     );
 
     if (_response.statusCode == 200) {
       // Return the future of the _response.
-      return UserInfo.fromJson(json.decode(_response.body));
+      //return UserInfo.fromJson(json.decode(_response.body));
     } else {
       print(_response.statusCode);
       print(_response.body);
@@ -45,7 +44,7 @@ class _ProfileState extends State<Profile> {
   List<bool> _ReadOnlybools = [true, true, true, true, true, true];
 
   // Dialog box
-  void _showDialog(BuildContext context, String message, int enable){
+  void _showDialog(String message, int enable){
     showDialog(
         context: context,
         builder: (BuildContext context){
@@ -86,7 +85,7 @@ class _ProfileState extends State<Profile> {
                 child: TextField(
                     onTap: (){
                       setState((){
-                        _showDialog(context, "Edit first name?", 0);
+                        _showDialog("Edit first name?", 0);
                         FocusScope.of(context).requestFocus(_nodes.elementAt(0));
                       });
                     },
@@ -107,7 +106,7 @@ class _ProfileState extends State<Profile> {
                   child: TextField(
                       onTap: () {
                         setState(() {
-                          _showDialog(context, "Edit last name?", 1);
+                          _showDialog("Edit last name?", 1);
                           FocusScope.of(context).requestFocus(_nodes.elementAt(1));
                         });
                       },
@@ -128,7 +127,7 @@ class _ProfileState extends State<Profile> {
                   child: TextField(
                       onTap: () {
                         setState((){
-                          _showDialog(context, "Edit email?", 2);
+                          _showDialog("Edit email?", 2);
                           FocusScope.of(context).requestFocus(_nodes.elementAt(2));
                         });
                       },
@@ -149,7 +148,7 @@ class _ProfileState extends State<Profile> {
                   child: TextField(
                       onTap: () {
                         setState(() {
-                          _showDialog(context, "Edit height?", 3);
+                          _showDialog("Edit height?", 3);
                           FocusScope.of(context).requestFocus(_nodes.elementAt(3));
                         });
                       },
@@ -170,7 +169,7 @@ class _ProfileState extends State<Profile> {
                   child: TextField(
                       onTap: () {
                          setState(() {
-                          _showDialog(context, "Edit age?", 4);
+                          _showDialog("Edit age?", 4);
                           FocusScope.of(context).requestFocus(_nodes.elementAt(4));
                         });
                       },
@@ -191,7 +190,7 @@ class _ProfileState extends State<Profile> {
                   child: TextField(
                       onTap: () {
                         setState(() {
-                          _showDialog(context, "Edit weight?", 5);
+                          _showDialog("Edit weight?", 5);
                           FocusScope.of(context).requestFocus(_nodes.elementAt(5));
                         });
                       },
