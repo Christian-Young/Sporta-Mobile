@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'Settings.dart';
 import 'Profile.dart';
 import 'CreateEvent.dart';
+import 'package:http/http.dart' as http;
+import 'models/UserInfo.dart';
+import 'Session.dart';
+import 'dart:convert';
+import 'dart:async';
 
 class Homepage extends StatefulWidget{
   _Homepage createState() => _Homepage();
@@ -9,17 +13,52 @@ class Homepage extends StatefulWidget{
 
 class _Homepage extends State<Homepage>{
   int _selectedIndex = 0;
+  Future<UserInfo> FutureProfileInfo;
+
+  Future<UserInfo> getUser() async {
+    final http.Response _response = await http.get(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/users/getUserAndDetail',
+      headers: headers,
+    );
+
+    if (_response.statusCode == 200) {
+      var parsedJson = json.decode(_response.body);
+      setState(() {
+        SessionFirstName = parsedJson['firstname'];
+        SessionLastName = parsedJson['lastname'];
+        SessionEmail = parsedJson['email'];
+        SessionAge = parsedJson['detials']['age'];
+        SessionHeight = parsedJson['detials']['height'];
+        SessionWeight = parsedJson['detials']['weight'];
+      });
+
+      return UserInfo.fromJson(json.decode(_response.body));
+    }
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
+
+  @override
+  void initState()
+  {
+    super.initState();
+    // Get profile info to display it on the profile page.
+    FutureProfileInfo = getUser();
+  }
 
   static const TextStyle optionStyle = TextStyle(
       fontSize: 30,
       fontWeight: FontWeight.bold
   );
 
-  static List<Widget> _widgetOptions = <Widget>[
+  // These three are each of the tabs.
+  List<Widget> _widgetOptions = <Widget>[
     Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          Text("Welcome [name here] !", style: optionStyle)
+          Text("Welcome $SessionFirstName!", style: optionStyle)
         ]
     ),
     Column(
@@ -36,6 +75,7 @@ class _Homepage extends State<Homepage>{
     )
   ];
 
+  // Setstate for changing the tab index.
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -57,16 +97,6 @@ class _Homepage extends State<Homepage>{
         backgroundColor: Colors.deepOrange,
       );
   }
-
-  /*
-  @override
-  void initState()
-  {
-    super.initState();
-    final snackBar = SnackBar(content: Text("Welcome [name here]!"));
-    scaffoldKey.currentState.showSnackBar(snackBar);
-  }
-  */
 
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -99,15 +129,6 @@ class _Homepage extends State<Homepage>{
                             Navigator.push(
                                 context, MaterialPageRoute(
                                 builder: (context) => Profile()));
-                          }
-                          ),
-                      ListTile(
-                          leading: Icon(Icons.settings),
-                          title: Text('Settings'),
-                          onTap: () {
-                            Navigator.push(
-                                context, MaterialPageRoute(
-                                builder: (context) => Settings()));
                           }
                           ),
                       ListTile(
