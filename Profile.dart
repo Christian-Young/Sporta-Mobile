@@ -11,37 +11,19 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
-  Future<UserInfo> FutureProfileInfo = user();
-
-  static Future<UserInfo> user() async {
-    final http.Response _response = await http.get(
-      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/users/detail/get',
-      headers: headers,
-    );
-
-    if (_response.statusCode == 200) {
-      // Return the future of the _response.
-      //return UserInfo.fromJson(json.decode(_response.body));
-    } else {
-      print(_response.statusCode);
-      print(_response.body);
-    }
-  }
-
-  // Text controllers for the profile information fields
-  final _firstNameController = TextEditingController(text: 'first name init');
-  final _lastNameController = TextEditingController(text: 'last name init');
-  final _emailController = TextEditingController(text: 'email init');
-  final _heightController = TextEditingController(text: 'height init');
-  final _ageController = TextEditingController(text: 'age init');
-  final _weightController = TextEditingController(text: 'weight init');
 
   // Keyboard focus nodes for each field
-  List<FocusNode> _nodes = [new FocusNode(), new FocusNode(), new FocusNode(),
-                            new FocusNode(), new FocusNode(), new FocusNode()];
+  List<FocusNode> _nodes = [new FocusNode(), new FocusNode(), new FocusNode()];
 
   // ReadOnly booleans for each field
-  List<bool> _ReadOnlybools = [true, true, true, true, true, true];
+  List<bool> _ReadOnlybools = [true, true, true];
+
+  // Text controllers for the profile information fields
+  final _nameController = TextEditingController(text: "$SessionFirstName $SessionLastName");
+  final _emailController = TextEditingController(text: SessionEmail);
+  final _ageController = TextEditingController(text: SessionAge.toString());
+  final _heightController = TextEditingController(text: SessionHeight.toString());
+  final _weightController = TextEditingController(text: SessionWeight.toString());
 
   // Dialog box
   void _showDialog(String message, int enable){
@@ -71,6 +53,23 @@ class _ProfileState extends State<Profile> {
     );
   }
 
+  Future<UserInfo> postUser(dynamic info) async {
+    final http.Response _response = await http.post(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/users/detail/update',
+      headers: headers,
+      body: info,
+    );
+
+    // If successful login, navigate to homepage.
+    if (_response.statusCode == 200) {
+      return UserInfo.fromJson(json.decode(_response.body));
+    }
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
+
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
@@ -83,61 +82,20 @@ class _ProfileState extends State<Profile> {
               Padding(
                 padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
                 child: TextField(
-                    onTap: (){
-                      setState((){
-                        _showDialog("Edit first name?", 0);
-                        FocusScope.of(context).requestFocus(_nodes.elementAt(0));
-                      });
-                    },
-                    // Sets the field back to read-only
-                    onSubmitted: (a){setState(() {_ReadOnlybools[0] = true;});},
-                    focusNode: _nodes.elementAt(0),
-                    readOnly: _ReadOnlybools.elementAt(0),
-                    controller: _firstNameController,
+                    readOnly: true,
+                    controller: _nameController,
                     decoration: InputDecoration(
-                    suffixIcon: Icon(Icons.create),
                     border: OutlineInputBorder(),
-                    labelText: 'First Name',
+                    labelText: 'Name',
                   )
                 )
               ),
               Padding(
                   padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
                   child: TextField(
-                      onTap: () {
-                        setState(() {
-                          _showDialog("Edit last name?", 1);
-                          FocusScope.of(context).requestFocus(_nodes.elementAt(1));
-                        });
-                      },
-                      // Set the field back to read-only
-                      onSubmitted: (b){setState(() {_ReadOnlybools[1] = true;});},
-                      focusNode: _nodes.elementAt(1),
-                      readOnly: _ReadOnlybools.elementAt(1),
-                      controller: _lastNameController,
-                      decoration: InputDecoration(
-                        suffixIcon: Icon(Icons.create),
-                        border: OutlineInputBorder(),
-                        labelText: 'Last Name',
-                      )
-                  )
-              ),
-              Padding(
-                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                  child: TextField(
-                      onTap: () {
-                        setState((){
-                          _showDialog("Edit email?", 2);
-                          FocusScope.of(context).requestFocus(_nodes.elementAt(2));
-                        });
-                      },
-                      // Sets the field back to read-only
-                      onSubmitted: (c){setState(() {_ReadOnlybools[2] = true;});},
-                      focusNode: _nodes.elementAt(2),
-                      readOnly: _ReadOnlybools.elementAt(2),
+                      readOnly: true,
                       controller: _emailController,
                       decoration: InputDecoration(
-                        suffixIcon: Icon(Icons.create),
                         border: OutlineInputBorder(),
                         labelText: 'Email',
                       )
@@ -148,35 +106,23 @@ class _ProfileState extends State<Profile> {
                   child: TextField(
                       onTap: () {
                         setState(() {
-                          _showDialog("Edit height?", 3);
-                          FocusScope.of(context).requestFocus(_nodes.elementAt(3));
+                          _showDialog("Edit age?", 0);
+                          FocusScope.of(context).requestFocus(_nodes.elementAt(0));
                         });
                       },
                       // Sets the field back to read-only
-                      onSubmitted: (d){setState(() {_ReadOnlybools[3] = true;});},
-                      focusNode: _nodes.elementAt(3),
-                      readOnly: _ReadOnlybools.elementAt(3),
-                      controller: _heightController,
-                      decoration: InputDecoration(
-                        suffixIcon: Icon(Icons.create),
-                        border: OutlineInputBorder(),
-                        labelText: 'Height',
-                      )
-                  )
-              ),
-              Padding(
-                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                  child: TextField(
-                      onTap: () {
-                         setState(() {
-                          _showDialog("Edit age?", 4);
-                          FocusScope.of(context).requestFocus(_nodes.elementAt(4));
-                        });
+                      onSubmitted: (d){setState(() {
+                        _ReadOnlybools[0] = true;
+                        postUser(jsonEncode(<String, int>{
+                          'age': int.parse(_ageController.text),
+                          'height': SessionHeight,
+                          'weight': SessionWeight,
+                        }));
+                        SessionAge = int.parse(_ageController.text);
+                      });
                       },
-                      // Sets the field back to read-only
-                      onSubmitted: (e){setState(() {_ReadOnlybools[4] = true;});},
-                      focusNode: _nodes.elementAt(4),
-                      readOnly: _ReadOnlybools.elementAt(4),
+                      focusNode: _nodes.elementAt(0),
+                      readOnly: _ReadOnlybools.elementAt(0),
                       controller: _ageController,
                       decoration: InputDecoration(
                         suffixIcon: Icon(Icons.create),
@@ -189,15 +135,54 @@ class _ProfileState extends State<Profile> {
                   padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
                   child: TextField(
                       onTap: () {
-                        setState(() {
-                          _showDialog("Edit weight?", 5);
-                          FocusScope.of(context).requestFocus(_nodes.elementAt(5));
+                         setState(() {
+                          _showDialog("Edit height?", 1);
+                          FocusScope.of(context).requestFocus(_nodes.elementAt(1));
                         });
                       },
                       // Sets the field back to read-only
-                      onSubmitted: (e){setState(() {_ReadOnlybools[5] = true;});},
-                      focusNode: _nodes.elementAt(5),
-                      readOnly: _ReadOnlybools.elementAt(5),
+                      onSubmitted: (e){setState(() {
+                        _ReadOnlybools[1] = true;
+                        postUser(jsonEncode(<String, int>{
+                          'age': SessionAge,
+                          'height': int.parse(_heightController.text),
+                          'weight': SessionWeight,
+                        }));
+                        SessionHeight = int.parse(_heightController.text);
+                      });
+                      },
+                      focusNode: _nodes.elementAt(1),
+                      readOnly: _ReadOnlybools.elementAt(1),
+                      controller: _heightController,
+                      decoration: InputDecoration(
+                        suffixIcon: Icon(Icons.create),
+                        border: OutlineInputBorder(),
+                        labelText: 'Height',
+                      )
+                  )
+              ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                  child: TextField(
+                      onTap: () {
+                        setState(() {
+                          _showDialog("Edit weight?", 2);
+                          FocusScope.of(context).requestFocus(_nodes.elementAt(2));
+                        });
+                      },
+                      // Sets the field back to read-only
+                      onSubmitted: (e){setState(() {
+                        _ReadOnlybools[2] = true;
+                        postUser(jsonEncode(<String, int>{
+                          'age': SessionAge,
+                          'height': SessionHeight,
+                          'weight': int.parse(_weightController.text),
+                        }));
+                        SessionWeight = int.parse(_weightController.text);
+                      });
+                      },
+                      focusNode: _nodes.elementAt(2),
+                      readOnly: _ReadOnlybools.elementAt(2),
                       controller: _weightController,
                       decoration: InputDecoration(
                         suffixIcon: Icon(Icons.create),
@@ -205,8 +190,8 @@ class _ProfileState extends State<Profile> {
                         labelText: 'Weight',
                       )
                   )
-              ),
-            ]
+                ),
+            ],
         )
       )
     );
