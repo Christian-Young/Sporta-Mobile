@@ -32,6 +32,7 @@ class _RegisterState extends State<Register>{
 
     // If successful registration, navigate back to login.
     if (_response.statusCode == 200){
+      // updateCookie(_response); ??
       Navigator.pop(context);
       DialogPopUp(context, "Account created!");
       return RegInfo.fromJson(json.decode(_response.body));
