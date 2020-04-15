@@ -6,7 +6,6 @@ void main() => runApp(Sporta());
 // Root
 class Sporta extends StatelessWidget {
 
-
   // This widget is the root of the application.
   @override
   Widget build(BuildContext context) {
