@@ -12,8 +12,8 @@ class Homepage extends StatefulWidget{
 }
 
 class _Homepage extends State<Homepage>{
+  // Index variable for the tabs.
   int _selectedIndex = 0;
-  Future<UserInfo> FutureProfileInfo;
 
   Future<UserInfo> getUser() async {
     final http.Response _response = await http.get(
@@ -23,14 +23,12 @@ class _Homepage extends State<Homepage>{
 
     if (_response.statusCode == 200) {
       var parsedJson = json.decode(_response.body);
-      setState(() {
-        SessionFirstName = parsedJson['firstname'];
-        SessionLastName = parsedJson['lastname'];
-        SessionEmail = parsedJson['email'];
-        SessionAge = parsedJson['detials']['age'];
-        SessionHeight = parsedJson['detials']['height'];
-        SessionWeight = parsedJson['detials']['weight'];
-      });
+      SessionFirstName = parsedJson['firstname'];
+      SessionLastName = parsedJson['lastname'];
+      SessionEmail = parsedJson['email'];
+      SessionAge = parsedJson['detials']['age'];
+      SessionHeight = parsedJson['detials']['height'];
+      SessionWeight = parsedJson['detials']['weight'];
 
       return UserInfo.fromJson(json.decode(_response.body));
     }
@@ -40,14 +38,18 @@ class _Homepage extends State<Homepage>{
     }
   }
 
+  // Initial state. Get the user and details.
   @override
   void initState()
   {
     super.initState();
     // Get profile info to display it on the profile page.
-    FutureProfileInfo = getUser();
+    setState(() {
+      Future<UserInfo> FutureProfileInfo = getUser();
+    });
   }
 
+  // Large font style.
   static const TextStyle optionStyle = TextStyle(
       fontSize: 30,
       fontWeight: FontWeight.bold
@@ -58,7 +60,7 @@ class _Homepage extends State<Homepage>{
     Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          Text("Welcome $SessionFirstName!", style: optionStyle)
+          Text("Welcome to Sporta", style: optionStyle)
         ]
     ),
     Column(
@@ -84,6 +86,7 @@ class _Homepage extends State<Homepage>{
 
   // Displays the floating action button if we're on the events page.
   FloatingActionButton isIndex2() {
+    // If the current index is 2 (events page) return the button.
     if (_selectedIndex == 2)
       return FloatingActionButton(
         onPressed: () {
