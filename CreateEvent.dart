@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'models/EventInfo.dart';
+import 'Session.dart';
+import 'dart:convert';
+import 'dart:async';
+
 
 class CreateEvent extends StatefulWidget{
   _CreateEvent createState() => _CreateEvent();
@@ -10,6 +16,23 @@ class _CreateEvent extends State<CreateEvent>{
   final _holeController = TextEditingController();
   List<TextEditingController> _parsController;
   List<Widget> widgetlist;
+
+  Future<EventInfo> event(dynamic info) async {
+    final http.Response _response = await http.post(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/createGolfEvent',
+      headers: headers,
+      body: info
+    );
+
+    if (_response.statusCode == 200) {
+      print("Success!");
+      return EventInfo.fromJson(json.decode(_response.body));
+    }
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
 
   void createHoles(int holeCount){
     _parsController = new List<TextEditingController>(holeCount);
@@ -23,7 +46,7 @@ class _CreateEvent extends State<CreateEvent>{
             width: 70.0,
             child: TextField(
                 style: TextStyle(
-                    fontSize: 17
+                    fontSize: 18
                 ),
                 textAlign: TextAlign.center,
                 decoration: InputDecoration(
@@ -42,7 +65,7 @@ class _CreateEvent extends State<CreateEvent>{
     if(_holeController.text != '')
     {
       if (int.parse(_holeController.text) > 0)
-        return new Text("Pars:");
+        return new Text("Pars:", style: TextStyle(fontSize: 17));
       else
         return new Text("");
     }
@@ -114,6 +137,7 @@ class _CreateEvent extends State<CreateEvent>{
             parsForEachHole(),
             RaisedButton(
                 onPressed: (){
+                  //event();
                   Navigator.pop(context);
                 },
                 child: Text('Create Event')
