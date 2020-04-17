@@ -14,6 +14,25 @@ class Homepage extends StatefulWidget{
 class _Homepage extends State<Homepage>{
   // Index variable for the tabs.
   int _selectedIndex = 0;
+  // Bag count
+  static int _bags = 0;
+
+  // Large font style.
+  static const TextStyle largeStyle = TextStyle(
+      fontSize: 30,
+      fontWeight: FontWeight.bold
+  );
+
+  // Initial state. Get the user and details.
+  @override
+  void initState()
+  {
+    super.initState();
+    // Get profile info to display it on the profile page.
+    setState(() {
+      Future<UserInfo> FutureProfileInfo = getUser();
+    });
+  }
 
   Future<UserInfo> getUser() async {
     final http.Response _response = await http.get(
@@ -38,46 +57,50 @@ class _Homepage extends State<Homepage>{
     }
   }
 
-  // Initial state. Get the user and details.
-  @override
-  void initState()
+  static Text bagCount()
   {
-    super.initState();
-    // Get profile info to display it on the profile page.
-    setState(() {
-      Future<UserInfo> FutureProfileInfo = getUser();
-    });
+    if (_bags == 0)
+      return Text("[No bags]");
+    else
+      return Text("[$_bags bags]");
   }
-
-  // Large font style.
-  static const TextStyle optionStyle = TextStyle(
-      fontSize: 30,
-      fontWeight: FontWeight.bold
-  );
 
   // These three are each of the tabs.
   List<Widget> _widgetOptions = <Widget>[
     Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          Text("Welcome to Sporta", style: optionStyle)
+          Text("Welcome to Sporta", style: largeStyle)
         ]
     ),
     Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          Text("Personal", style: optionStyle),
+          Text("Personal", style: largeStyle),
+          Text("Golf Bags", style: largeStyle),
+          bagCount(),
+          Row(
+            children: <Widget>[
+              RaisedButton(
+                onPressed: (){
+                  _bags++;
+                  print("Added bag!");
+                },
+                child: Text("Add bag")
+              )
+            ],
+          )
         ]
     ),
     Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget> [
-          Text("Events", style: optionStyle),
+          Text("Events", style: largeStyle),
         ]
     )
   ];
 
-  // Setstate for changing the tab index.
+  // SetState for changing the tab index.
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
