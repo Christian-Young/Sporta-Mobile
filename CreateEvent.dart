@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'models/EventInfo.dart';
@@ -15,7 +16,10 @@ class _CreateEvent extends State<CreateEvent>{
   final _courseController = TextEditingController();
   final _holeController = TextEditingController();
   List<TextEditingController> _parsController;
-  List<Widget> widgetlist;
+  List<Widget> _holeList;
+  List<Widget> _playerList;
+  List<TextEditingController> _controllerList;
+  String _numPlayers = '1';
 
   Future<EventInfo> event(dynamic info) async {
     final http.Response _response = await http.post(
@@ -35,12 +39,12 @@ class _CreateEvent extends State<CreateEvent>{
 
   void createHoles(int holeCount){
     _parsController = new List<TextEditingController>(holeCount);
-    widgetlist = new List<Widget>();
+    _holeList = new List<Widget>();
 
     for (int i = 0; i < holeCount; i++)
     {
       setState(() {
-        widgetlist.add(Expanded(
+        _holeList.add(Expanded(
           child: Container(
             width: 70.0,
             child: TextField(
@@ -64,7 +68,7 @@ class _CreateEvent extends State<CreateEvent>{
     if(_holeController.text != '')
     {
       if (int.parse(_holeController.text) > 0)
-        return new Text("Pars:", style: TextStyle(fontSize: 17));
+        return new Text("Pars:", textAlign: TextAlign.center, style: TextStyle(fontSize: 17));
       else
         return new Text("");
     }
@@ -76,12 +80,31 @@ class _CreateEvent extends State<CreateEvent>{
     if (_holeController.text == '')
       return new Row();
 
-    if (widgetlist != null)
+    if (_holeList != null)
     {
-        return new Row(children: widgetlist);
+        return new Row(children: _holeList);
     }
     else
       return new Row();
+  }
+
+  Row displayPlayers(int playerCount){
+    _controllerList = new List<TextEditingController>();
+    _playerList = new List<Widget>();
+
+    for (int i = 0; i < playerCount; i++){
+      _controllerList.add(new TextEditingController());
+
+      _playerList.add(
+          Expanded(child: TextField(
+            controller: _controllerList[i],
+              textAlign: TextAlign.center,
+              decoration: InputDecoration(hintText: "Player Email")
+          )
+        )
+      );
+    }
+    return Row(children: _playerList);
   }
 
   Widget build(BuildContext context) {
@@ -90,8 +113,8 @@ class _CreateEvent extends State<CreateEvent>{
         title: Text('Create Event'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
+          shrinkWrap: true,
           children: <Widget>[
             Padding(
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
@@ -134,13 +157,39 @@ class _CreateEvent extends State<CreateEvent>{
             ),
             areParsDisplayed(),
             parsForEachHole(),
-            RaisedButton(
-                onPressed: (){
-                  //event();
-                  Navigator.pop(context);
-                },
-                child: Text('Create Event')
+            Padding(
+                padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
+              child: Text("Players:", textAlign: TextAlign.center ,style: TextStyle(fontSize: 20)),
             ),
+            displayPlayers(int.parse(_numPlayers)),
+            Center(
+              child: DropdownButton<String>(
+                value: _numPlayers,
+                icon: Icon(Icons.arrow_downward),
+                iconSize: 24,
+                elevation: 16,
+                style: TextStyle(color:Colors.deepOrange),
+                onChanged: (String newValue) {
+                  setState(() {
+                    _numPlayers = newValue;
+                  });
+                },
+                items: <String> ['1', '2', '3', '4'].map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value, style: TextStyle(fontSize: 18)),
+                  );
+                }).toList(),
+              ),
+            ),
+            Align(
+              child: RaisedButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  child: Text('Create Event')
+              ),
+            )
           ],
         ),
       ),
