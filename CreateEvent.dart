@@ -25,8 +25,7 @@ class _CreateEvent extends State<CreateEvent>{
     );
 
     if (_response.statusCode == 200) {
-      print("Success!");
-      return EventInfo.fromJson(json.decode(_response.body));
+      //return EventInfo.fromJson(json.decode(_response.body));
     }
     else {
       print(_response.statusCode);
