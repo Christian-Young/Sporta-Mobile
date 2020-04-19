@@ -12,8 +12,9 @@ class GetBags{
   List<Object> get props => [golfClub, id, bagName];
 
   static GetBags fromJson(dynamic json){
+    // ClubInfo.fromJson(json['golfClub']),
     return GetBags(
-      golfClub: json['golfClub'],
+      golfClub: new ClubInfo(),
           id: json['_id'],
       bagName: json['bagName']
     );
