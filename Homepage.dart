@@ -15,106 +15,220 @@ class Homepage extends StatefulWidget{
   _Homepage createState() => _Homepage();
 }
 
-/*
+// Bag count
+int _bags = 0;
+// POST Bag model
+Future<BagInfo> futureBagInfo;
+// Club model
+Future<ClubInfo> futureClubInfo;
+// Get all bags model
+Future<GetBags> futureGetBags;
+
 class _GolfBagDialogState extends State<GolfBagDialog>{
   // Controllers
   final _bagNameController = TextEditingController();
   final _clubNameController = TextEditingController();
-  final _clubTypeController = TextEditingController();
-  // Index variable for the tabs.
-  int _selectedIndex = 0;
-  // Bag count
-  int _bags = 0;
   // Number of clubs
   int _numClubs = 0;
-  // Dropdownvalue for number of bags
-  String _dropdownValue = 'Wood';
+  // Drop down value for number of bags
+  String _clubType = 'Wood';
+  // ignore: non_constant_identifier_names
+  final String NO_CLUB = "0";
+  // ignore: non_constant_identifier_names
+  final String WOOD = "1";
+  // ignore: non_constant_identifier_names
+  final String IRON = "2";
+  // ignore: non_constant_identifier_names
+  final String WEDGE = "3";
+  // ignore: non_constant_identifier_names
+  final String PUTTER = "4";
+  // BID
+  String bagID;
+  // Readonly for bag name
+  bool bagNameReadOnly = false;
+  List<String> clubNames = new List<String>();
+  List<String> clubTypeNames = new List<String>();
+
+  String determineClubType() {
+    if(_numClubs == 0)
+      return NO_CLUB;
+
+    switch(_clubType)
+    {
+      case "Wood":
+        return WOOD;
+
+      case "Iron":
+        return IRON;
+
+      case "Wedge":
+        return WEDGE;
+
+      case "Putter":
+        return PUTTER;
+    }
+  }
+  Future<BagInfo> postBag(dynamic info) async {
+    final http.Response _response = await http.post(
+        'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/createGolfBag',
+        headers: headers,
+        body: info
+    );
+
+    // If successful login, navigate to homepage.
+    if (_response.statusCode == 200) {
+      // Get all bags to get the bag that was just posted.
+      futureGetBags = getBags(_bagNameController.text);
+    }
+    // If it's some other error that the user doesn't need to know about.
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
+  Future<GetBags> getBags(String name) async {
+    List<dynamic> bagResponseList2;
+    final http.Response _response = await http.get(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/getAllGolfBags',
+      headers: headers,
+    );
+
+    if (_response.statusCode == 200) {
+      bagResponseList2 = json.decode(_response.body);
+      for (int i = 0; i < bagResponseList2.length; i++) {
+
+        if (bagResponseList2[i]['bagName'] == name)
+          bagID = bagResponseList2[i]['_id'];
+
+      }
+      for (int i = 0; i < _numClubs; i++){
+      futureClubInfo = postClub(
+          jsonEncode(<String, String>{
+            'golfBag': bagID,
+            'clubName': clubNames[i],
+            'clubType': clubTypeNames[i],
+          })
+      );
+      }
+    }
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
+  Future<ClubInfo> postClub(dynamic info) async {
+    final http.Response _response = await http.post(
+        'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/createGolfclub',
+        headers: headers,
+        body: info
+    );
+
+    // If successful login, navigate to homepage.
+    if (_response.statusCode == 200) {
+      //return ClubInfo.fromJson(json.decode(_response.body));
+    }
+    // If it's some other error that the user doesn't need to know about.
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
 
   Widget build(BuildContext context){
-    showDialog(
-      context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text(
-            'Bag', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                TextField(
-                    controller: _bagNameController,
-                    decoration: InputDecoration(hintText: "Bag Name")
-                ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(0, 35, 0, 0),
-                  child: Text(
-                      "Club", style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                TextField(
-                    controller: _clubNameController,
-                    decoration: InputDecoration(hintText: "Club Name")
-                ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                  child: Text("Club type"),
-                ),
-                DropdownButton<String>(
-                  value: _dropdownValue,
-                  icon: Icon(Icons.arrow_downward),
-                  iconSize: 24,
-                  elevation: 16,
-                  style: TextStyle(color: Colors.deepOrange),
-                  onChanged: (String newValue) {
-                    setState(() {
-                      _dropdownValue = newValue;
-                    });
-                  },
-                  items: <String>['Wood', 'Iron', 'Wedge', 'Putter'].map<
-                      DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value, style: TextStyle(fontSize: 18)),
-                    );
-                  }).toList(),
-                ),
-                RaisedButton(
-                  child: Text("Add club"),
-                  onPressed: () {
-                    if (_clubNameController.text == "")
-                      DialogPopUp(context, "Name your club.");
+    return AlertDialog(
+      title: Text('Bag', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              TextField(
+                  controller: _bagNameController,
+                  decoration: InputDecoration(hintText: "Bag Name"),
+                readOnly: bagNameReadOnly,
+                onSubmitted: (p) {
+                  setState(() {
+                    if(_bagNameController.text != "")
+                      bagNameReadOnly = true;
+                  });
+                },
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(0, 35, 0, 0),
+                child: Text(
+                    "Club", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+              TextField(
+                  controller: _clubNameController,
+                  decoration: InputDecoration(hintText: "Club Name")
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                child: Text("Club type"),
+              ),
+              DropdownButton<String>(
+                value: _clubType,
+                icon: Icon(Icons.arrow_downward),
+                iconSize: 24,
+                elevation: 16,
+                style: TextStyle(color:Colors.deepOrange),
+                onChanged: (String newValue) {
+                  setState(() {
+                    _clubType = newValue;
+                  });
+                },
+                items: <String> ['Wood', 'Iron', 'Wedge', 'Putter'].map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value, style: TextStyle(fontSize: 18)),
+                  );
+                }).toList(),
+              ),
+              RaisedButton(
+                child: Text("Add club"),
+                onPressed: (){
+                  if (_clubNameController.text == "")
+                    DialogPopUp(context, "Name your club.");
+                  else {
                     setState(() {
                       _numClubs++;
                     });
-                  },
-                ),
-                Text("$_numClubs clubs will be in this bag",
-                    style: TextStyle(fontSize: 18))
-              ],
-            )
-        ),
-        actions: <Widget>[
-          new FlatButton(
-              child: new Text('Add bag'),
-              onPressed: () {
-                if (_bagNameController.text == "")
-                  DialogPopUp(context, "Name your bag.");
-                else {
-                  Navigator.of(context).pop();
-                }
-              }
-          ),
-          new FlatButton(
-              child: new Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _bagNameController.text = "";
-                _clubNameController.text = "";
-                _numClubs = 0;
-              }
+                    clubNames.add(_clubNameController.text);
+                    clubTypeNames.add(determineClubType());
+                  }
+                },
+              ),
+              Text(_numClubs == 1 ? "$_numClubs club will be in this bag"
+                  : "$_numClubs clubs will be in this bag", style: TextStyle(fontSize: 18))
+            ],
           )
-        ],
-      );
-    });
+      ),
+      actions: <Widget>[
+        new FlatButton(
+            child: new Text('Add bag'),
+            onPressed: () {
+              if (_bagNameController.text == "")
+                DialogPopUp(context, "Name your bag.");
+              else {
+                // Post the bag
+                futureBagInfo = postBag(jsonEncode(
+                    <String, String>{'bagName': _bagNameController.text}));
+                // Post each of the clubs that were added.
+                _bags++;
+                Navigator.of(context).pop();
+              }
+            }
+        ),
+        new FlatButton(
+            child: new Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+              bagNameReadOnly = false;
+              _bagNameController.text = "";
+              _clubNameController.text = "";
+              _numClubs = 0;
+            }
+        )
+      ],
+    );
   }
 }
 
@@ -122,34 +236,13 @@ class GolfBagDialog extends StatefulWidget{
   @override
   _GolfBagDialogState createState() => new _GolfBagDialogState();
 }
-*/
 
 class _Homepage extends State<Homepage>{
-  // Controllers
-  final _bagNameController = TextEditingController();
-  final _clubNameController = TextEditingController();
   // Index variable for the tabs.
   int _selectedIndex = 0;
-  // Bag count
-  int _bags = 0;
-  // Number of clubs
-  int _numClubs = 0;
-  // Drop down value for number of bags
-  String _clubType = 'Wood';
-  // POST Bag model
-  Future<BagInfo> futureBagInfo;
-  // Club model
-  Future<ClubInfo> futureClubInfo;
-  // Get all bags model
-  Future<GetBags> futureGetBags;
   // User model
   Future<UserInfo> futureProfileInfo;
-  final String NO_CLUB = "0";
-  final String WOOD = "1";
-  final String IRON = "2";
-  final String WEDGE = "3";
-  final String PUTTER = "4";
-  String bagID;
+  // ignore: non_constant_identifier_names
   List<Widget> BagList = new List<Widget>();
 
   // Large font style.
@@ -159,13 +252,14 @@ class _Homepage extends State<Homepage>{
   );
   // Initial state. Get the user and details.
   @override
-  void initState()
-  {
+  void initState() {
     super.initState();
     // Get profile info to display it on the profile page.
     futureProfileInfo = getUser();
     futureGetBags = getBags();
   }
+  List<String> bagnames = new List<String>();
+  List<String> bagIDs = new List<String>();
 
   Future<UserInfo> getUser() async {
     final http.Response _response = await http.get(
@@ -183,7 +277,6 @@ class _Homepage extends State<Homepage>{
         SessionHeight = parsedJson['details']['height'];
         SessionWeight = parsedJson['details']['weight'];
       });
-
       return UserInfo.fromJson(json.decode(_response.body));
     }
     else {
@@ -192,67 +285,42 @@ class _Homepage extends State<Homepage>{
     }
   }
   Future<GetBags> getBags() async {
+    List<dynamic> bagResponseList;
     final http.Response _response = await http.get(
       'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/getAllGolfBags',
       headers: headers,
     );
 
     if (_response.statusCode == 200) {
-
-      return GetBags.fromJson(json.decode(_response.body));
+      bagResponseList = json.decode(_response.body);
+      setState(() {
+        _bags = bagResponseList.length;
+      });
+      for (int i = 0; i < bagResponseList.length; i++) {
+        bagnames.add(bagResponseList[i]['bagName']);
+        bagIDs.add(bagResponseList[i]['_id']);
+      }
     }
     else {
       print(_response.statusCode);
       print(_response.body);
     }
   }
-  Future<BagInfo> postBag(dynamic info) async {
+  Future<BagInfo> deleteBag(dynamic info) async {
     final http.Response _response = await http.post(
-        'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/createGolfBag',
+        'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/deleteGolfBag',
         headers: headers,
         body: info
     );
 
     // If successful login, navigate to homepage.
     if (_response.statusCode == 200) {
-      return BagInfo.fromJson(json.decode(_response.body));
     }
     // If it's some other error that the user doesn't need to know about.
     else {
       print(_response.statusCode);
       print(_response.body);
     }
-  }
-  Future<ClubInfo> postClub(dynamic info) async {
-    final http.Response _response = await http.post(
-        'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/createGolfclub',
-        headers: headers,
-        body: info
-    );
-
-    // If successful login, navigate to homepage.
-    if (_response.statusCode == 200) {
-      return ClubInfo.fromJson(json.decode(_response.body));
-    }
-    // If it's some other error that the user doesn't need to know about.
-    else {
-      print(_response.statusCode);
-      print(_response.body);
-    }
-  }
-
-  Text bagCount() {
-    if (_bags == 0)
-      return Text("[No bags]");
-    else
-      return Text("[$_bags bags]");
-  }
-
-  // SetState for changing the tab index.
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 
   List<Widget> displayBags(){
@@ -277,39 +345,38 @@ class _Homepage extends State<Homepage>{
         return BagList;
     }
     else {
-      BagList.add(bagCount());
-      BagList.add(Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          RaisedButton(
-              onPressed: (){
-                _simp();
-              },
-              child: Text("Add bag")
+      for (int i = 0; i < _bags; i++) {
+        BagList.add(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      deleteBag(jsonEncode(<String, String>{
+                        'golfBag': bagIDs[i]}));
+                      _bags--;
+                    });
+                  },
+                  child: Text("${bagnames[i]}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
+                decoration: BoxDecoration(
+                    border: Border.all(color: Colors.deepOrange)
+                ),
+              )
+            ],
           )
-        ],
+        );
+      }
+      BagList.add(bagCount());
+      BagList.add(RaisedButton(
+          onPressed: (){
+            _simp();
+          },
+          child: Text("Add bag")
       ));
       return BagList;
-    }
-  }
-
-  String determineClubType() {
-    if(_numClubs == 0)
-      return NO_CLUB;
-
-    switch(_clubType)
-    {
-      case "Wood":
-        return WOOD;
-
-      case "Iron":
-        return IRON;
-
-      case "Wedge":
-        return WEDGE;
-
-      case "Putter":
-        return PUTTER;
     }
   }
 
@@ -344,96 +411,18 @@ class _Homepage extends State<Homepage>{
     showDialog(
         context: context,
         builder: (context) {
-          return AlertDialog(
-            title: Text('Bag', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            content: SingleChildScrollView(
-              child: ListBody(
-                children: <Widget>[
-                  TextField(
-                      controller: _bagNameController,
-                      decoration: InputDecoration(hintText: "Bag Name")
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(0, 35, 0, 0),
-                    child: Text(
-                        "Club", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                  TextField(
-                      controller: _clubNameController,
-                      decoration: InputDecoration(hintText: "Club Name")
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                    child: Text("Club type"),
-                  ),
-                  DropdownButton<String>(
-                    value: _clubType,
-                    icon: Icon(Icons.arrow_downward),
-                    iconSize: 24,
-                    elevation: 16,
-                    style: TextStyle(color:Colors.deepOrange),
-                    onChanged: (String newValue) {
-                      setState(() {
-                        _clubType = newValue;
-                      });
-                      },
-                    items: <String> ['Wood', 'Iron', 'Wedge', 'Putter'].map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value, style: TextStyle(fontSize: 18)),
-                      );
-                    }).toList(),
-                  ),
-                  RaisedButton(
-                    child: Text("Add club"),
-                    onPressed: (){
-                      if (_clubNameController.text == "")
-                        DialogPopUp(context, "Name your club.");
-                      setState(() {
-                        _numClubs++;
-                      });
-                    },
-                  ),
-                  Text(_numClubs == 1 ? "$_numClubs club will be in this bag"
-                      : "$_numClubs clubs will be in this bag", style: TextStyle(fontSize: 18))
-                ],
-              )
-            ),
-            actions: <Widget>[
-              new FlatButton(
-                  child: new Text('Add bag'),
-                  onPressed: () {
-                    if (_bagNameController.text == "")
-                      DialogPopUp(context, "Name your bag.");
-                    else {
-                      futureBagInfo = postBag(jsonEncode(
-                          <String, String>{'bagName': _bagNameController.text}));
-                      futureGetBags = getBags();
-                      /*futureClubInfo = postClub(
-                          jsonEncode(<String, String>{
-                            'golfBag': bagID,
-                            'clubName': _clubNameController.text,
-                            'clubType': determineClubType(),
-                          })
-                      );*/
-                      _bags++;
-                      Navigator.of(context).pop();
-                    }
-                  }
-              ),
-              new FlatButton(
-                child: new Text('Cancel'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _bagNameController.text = "";
-                  _clubNameController.text = "";
-                  _numClubs = 0;
-                }
-              )
-            ],
-          );
+          return new GolfBagDialog();
         });
   }
+
+  // Displays bag count in the bag dialog.
+  Text bagCount() {
+    if (_bags == 0)
+      return Text("[No bags]", style: TextStyle(fontSize: 20));
+    else
+      return Text("[$_bags bags]", style: TextStyle(fontSize: 20));
+  }
+
   // Displays the floating action button if we're on the events page.
   FloatingActionButton isIndex2() {
     // If the current index is 2 (events page) return the button.
@@ -451,12 +440,15 @@ class _Homepage extends State<Homepage>{
       );
   }
 
+  // SetState for changing the tab index.
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   Widget build(BuildContext context) {
-    return MaterialApp(
-        theme: ThemeData(
-          primarySwatch: Colors.deepOrange,
-        ),
-      home: Scaffold(
+    return Scaffold(
           appBar: AppBar(
             title: Text('Home'),
           ),
@@ -489,6 +481,7 @@ class _Homepage extends State<Homepage>{
                         title: Text('Logout'),
                         onTap: () {
                           Navigator.pop(context);
+                          Navigator.pop(context);
                           },
                       )
                     ]
@@ -500,12 +493,12 @@ class _Homepage extends State<Homepage>{
           bottomNavigationBar: BottomNavigationBar(
             items: <BottomNavigationBarItem>[
               BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                title: Text('Overview'),
+                icon: Icon(Icons.golf_course),
+                title: Text('Matches'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                title: Text('Personal'),
+                icon: Icon(Icons.archive),
+                title: Text('Bags'),
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.library_books),
@@ -517,7 +510,6 @@ class _Homepage extends State<Homepage>{
             onTap: _onItemTapped,
           ),
           floatingActionButton: isIndex2(),
-      ),
-    );
+      );
   }
 }
