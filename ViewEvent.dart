@@ -1,12 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'Session.dart';
+import 'dart:async';
 
 class ViewEvent extends StatefulWidget{
-  _ViewEvent createState() => _ViewEvent();
+  final String eventID;
+
+  ViewEvent(this.eventID);
+
+  _ViewEvent createState() => _ViewEvent(eventID);
 }
 
 class _ViewEvent extends State<ViewEvent>{
-  final _courseController = TextEditingController();
-  final _parsController = TextEditingController();
+  final String eventID;
+
+  _ViewEvent(this.eventID);
+
+  Future<void> getEvent() async {
+    final http.Response _response = await http.get(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/getEventResults/$eventID',
+      headers: headers,
+    );
+
+    if (_response.statusCode == 200) {
+      print(_response.body);
+    }
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
+
+  void initState(){
+    super.initState();
+    getEvent();
+  }
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,22 +47,9 @@ class _ViewEvent extends State<ViewEvent>{
           children: <Widget>[
             Padding(
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                child: TextField(
-                    controller: _courseController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Course',
-                    )
-                )
+                child: Text("Event")
             ),
-            TextField(
-                obscureText: true,
-                controller: _parsController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Pars for each hole',
-                )
-            ),
+            Text("Stuff"),
             RaisedButton(
                 onPressed: (){
                   Navigator.pop(context);
