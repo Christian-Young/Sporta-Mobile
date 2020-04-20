@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'Profile.dart';
 import 'CreateEvent.dart';
+import 'CreateMatch.dart';
 import 'ShowDialog.dart';
 import 'package:http/http.dart' as http;
 import 'models/UserInfo.dart';
@@ -10,6 +11,9 @@ import 'models/GetBags.dart';
 import 'Session.dart';
 import 'dart:convert';
 import 'dart:async';
+import 'ViewMatch.dart';
+import 'ViewBag.dart';
+import 'ViewEvent.dart';
 
 class Homepage extends StatefulWidget{
   _Homepage createState() => _Homepage();
@@ -23,7 +27,8 @@ Future<BagInfo> futureBagInfo;
 Future<ClubInfo> futureClubInfo;
 // Get all bags model
 Future<GetBags> futureGetBags;
-
+List<String> bagnames = new List<String>();
+List<String> bagIDs = new List<String>();
 class _GolfBagDialogState extends State<GolfBagDialog>{
   // Controllers
   final _bagNameController = TextEditingController();
@@ -77,6 +82,9 @@ class _GolfBagDialogState extends State<GolfBagDialog>{
 
     // If successful login, navigate to homepage.
     if (_response.statusCode == 200) {
+      var parsedJson = json.decode(_response.body);
+      bagIDs.add(parsedJson['golfBag']);
+      _bags++;
       // Get all bags to get the bag that was just posted.
       futureGetBags = getBags(_bagNameController.text);
     }
@@ -208,11 +216,11 @@ class _GolfBagDialogState extends State<GolfBagDialog>{
               if (_bagNameController.text == "")
                 DialogPopUp(context, "Name your bag.");
               else {
+                bagnames.add(_bagNameController.text);
                 // Post the bag
                 futureBagInfo = postBag(jsonEncode(
                     <String, String>{'bagName': _bagNameController.text}));
                 // Post each of the clubs that were added.
-                _bags++;
                 Navigator.of(context).pop();
               }
             }
@@ -243,7 +251,18 @@ class _Homepage extends State<Homepage>{
   // User model
   Future<UserInfo> futureProfileInfo;
   // ignore: non_constant_identifier_names
+  List<Widget> MatchList = new List<Widget>();
+  List<String> matchNames = new List<String>();
+  List<String> matchIDs = new List<String>();
+
+  List<Widget> EventList = new List<Widget>();
+  List<String> eventNames = new List<String>();
+  List<String> eventIDs = new List<String>();
+
   List<Widget> BagList = new List<Widget>();
+
+  int _matches = 0;
+  int _events = 0;
 
   // Large font style.
   static const TextStyle largeStyle = TextStyle(
@@ -255,13 +274,13 @@ class _Homepage extends State<Homepage>{
   void initState() {
     super.initState();
     // Get profile info to display it on the profile page.
-    futureProfileInfo = getUser();
-    futureGetBags = getBags();
+    getUser();
+    getBags();
+    getMatches();
+    getEvents();
   }
-  List<String> bagnames = new List<String>();
-  List<String> bagIDs = new List<String>();
 
-  Future<UserInfo> getUser() async {
+  Future<void> getUser() async {
     final http.Response _response = await http.get(
       'http://localhost3000.us-east-2.elasticbeanstalk.com/api/users/getUserAndDetail',
       headers: headers,
@@ -277,14 +296,14 @@ class _Homepage extends State<Homepage>{
         SessionHeight = parsedJson['details']['height'];
         SessionWeight = parsedJson['details']['weight'];
       });
-      return UserInfo.fromJson(json.decode(_response.body));
+      //return UserInfo.fromJson(json.decode(_response.body));
     }
     else {
       print(_response.statusCode);
       print(_response.body);
     }
   }
-  Future<GetBags> getBags() async {
+  Future<void> getBags() async {
     List<dynamic> bagResponseList;
     final http.Response _response = await http.get(
       'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/getAllGolfBags',
@@ -306,7 +325,7 @@ class _Homepage extends State<Homepage>{
       print(_response.body);
     }
   }
-  Future<BagInfo> deleteBag(dynamic info) async {
+  Future<void> deleteBag(dynamic info) async {
     final http.Response _response = await http.post(
         'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/deleteGolfBag',
         headers: headers,
@@ -322,6 +341,130 @@ class _Homepage extends State<Homepage>{
       print(_response.body);
     }
   }
+  Future<void> getMatches() async {
+    List<dynamic> matchResponseList;
+    final http.Response _response = await http.get(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/getMyMatches',
+      headers: headers,
+    );
+
+    if (_response.statusCode == 200) {
+      matchResponseList = json.decode(_response.body);
+      setState(() {
+        _matches = matchResponseList.length;
+      });
+
+      for (int i = 0; i < matchResponseList.length; i++){
+        matchIDs.add(matchResponseList[i]['_id']);
+        matchNames.add(matchResponseList[i]['nameOfRound']);
+      }
+    }
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
+  Future<void> getEvents() async {
+    List<dynamic> eventResponseList;
+    final http.Response _response = await http.get(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/getMyEvents',
+      headers: headers,
+    );
+
+    if (_response.statusCode == 200) {
+      eventResponseList = json.decode(_response.body);
+      setState(() {
+        _events = eventResponseList.length;
+      });
+
+      for (int i = 0; i < eventResponseList.length; i++){
+        eventIDs.add(eventResponseList[i]['_id']);
+        eventNames.add(eventResponseList[i]['eventName']);
+      }
+    }
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
+
+  List<Widget> displayMatches(){
+    MatchList = new List<Widget>();
+
+    MatchList.add(Text("Matches", style: largeStyle));
+
+    if(_matches == 0) {
+      MatchList.add(Text("No matches to show"));
+      MatchList.add(matchCount());
+      return MatchList;
+    }
+    else {
+      for (int i = 0; i < _matches; i++) {
+        MatchList.add(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context, MaterialPageRoute(
+                          builder: (context) => ViewMatch(matchIDs[i])));
+                    },
+                    child: Text("${matchNames[i]}", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                  color: Colors.deepOrange,
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 50),
+                )
+              ],
+            )
+        );
+      }
+      MatchList.add(matchCount());
+      return MatchList;
+    }
+  }
+
+  List<Widget> displayEvents(){
+    EventList = new List<Widget>();
+
+    EventList.add(Text("Events", style: largeStyle));
+
+    if(_events == 0) {
+      EventList.add(Text("No events to show"));
+      EventList.add(eventCount());
+      return EventList;
+    }
+    else {
+      for (int i = 0; i < _events; i++) {
+        EventList.add(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context, MaterialPageRoute(
+                          builder: (context) => ViewEvent(eventIDs[i])));
+                    },
+                    child: Text("${eventNames[i]}", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                  color: Colors.deepOrange,
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 50),
+                )
+              ],
+            )
+        );
+      }
+      EventList.add(eventCount());
+      return EventList;
+    }
+  }
 
   List<Widget> displayBags(){
     BagList = new List<Widget>();
@@ -331,17 +474,6 @@ class _Homepage extends State<Homepage>{
     if(_bags == 0) {
         BagList.add(Text("No bags to show"));
         BagList.add(bagCount());
-        BagList.add(Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            RaisedButton(
-                onPressed: (){
-                  _simp();
-                },
-                child: Text("Add bag")
-            )
-          ],
-        ));
         return BagList;
     }
     else {
@@ -353,29 +485,22 @@ class _Homepage extends State<Homepage>{
               Container(
                 child: InkWell(
                   onTap: () {
-                    setState(() {
-                      deleteBag(jsonEncode(<String, String>{
-                        'golfBag': bagIDs[i]}));
-                      _bags--;
-                    });
+                    Navigator.push(
+                        context, MaterialPageRoute(
+                        builder: (context) => ViewBag(bagIDs[i])));
                   },
-                  child: Text("${bagnames[i]}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  child: Text("${bagnames[i]}", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.white)),
                 ),
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.deepOrange)
-                ),
+                color: Colors.deepOrange,
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 50),
               )
             ],
           )
         );
       }
       BagList.add(bagCount());
-      BagList.add(RaisedButton(
-          onPressed: (){
-            _simp();
-          },
-          child: Text("Add bag")
-      ));
       return BagList;
     }
   }
@@ -386,23 +511,19 @@ class _Homepage extends State<Homepage>{
     {
       case 0: return Column(
           mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Text("Welcome to Sporta", style: largeStyle)
-          ]
+          children: displayMatches()
       );
       break;
 
       case 1: return Column(
           mainAxisAlignment: MainAxisAlignment.start,
-          children: displayBags()
+          children: displayEvents()
       );
       break;
 
       case 2: return Column(
           mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget> [
-            Text("Events", style: largeStyle),
-          ]
+          children: displayBags()
       );
     }
   }
@@ -415,25 +536,41 @@ class _Homepage extends State<Homepage>{
         });
   }
 
+  // Displays match count in the match page.
+  Text matchCount() {
+    if (_matches == 0)
+      return Text("[No matches]", style: TextStyle(fontSize: 20));
+    else
+      return Text(_matches == 1 ? "[$_matches matches]" : "[$_matches matches]", style: TextStyle(fontSize: 20));
+  }
+
+  // Displays event count in the event page.
+  Text eventCount() {
+    if (_events == 0)
+      return Text("[No events]", style: TextStyle(fontSize: 20));
+    else
+      return Text(_events == 1 ? "[$_events event]" : "[$_events events]", style: TextStyle(fontSize: 20));
+  }
+
   // Displays bag count in the bag dialog.
   Text bagCount() {
     if (_bags == 0)
       return Text("[No bags]", style: TextStyle(fontSize: 20));
     else
-      return Text("[$_bags bags]", style: TextStyle(fontSize: 20));
+      return Text(_bags == 1 ? "[$_bags bag]" : "[$_bags bags]", style: TextStyle(fontSize: 20));
   }
 
   // Displays the floating action button if we're on the events page.
-  FloatingActionButton isIndex2() {
+  FloatingActionButton FAB() {
     // If the current index is 2 (events page) return the button.
-    if (_selectedIndex == 2)
       return FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-              context, MaterialPageRoute(
-              builder: (context) => CreateEvent()
-          )
-          );
+          if (_selectedIndex == 0)
+          Navigator.push(context, MaterialPageRoute(builder: (context) => CreateMatch()));
+          else if (_selectedIndex == 1)
+            Navigator.push(context, MaterialPageRoute(builder: (context) => CreateEvent()));
+          else if (_selectedIndex == 2)
+            _simp();
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.deepOrange,
@@ -497,19 +634,19 @@ class _Homepage extends State<Homepage>{
                 title: Text('Matches'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.archive),
-                title: Text('Bags'),
-              ),
-              BottomNavigationBarItem(
                 icon: Icon(Icons.library_books),
                 title: Text('Events'),
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.archive),
+                title: Text('Bags'),
               ),
             ],
             currentIndex: _selectedIndex,
             selectedItemColor: Colors.deepOrange,
             onTap: _onItemTapped,
           ),
-          floatingActionButton: isIndex2(),
+          floatingActionButton: FAB(),
       );
   }
 }
