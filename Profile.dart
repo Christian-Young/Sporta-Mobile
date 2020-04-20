@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'models/UserInfo.dart';
 import 'Session.dart';
+import 'ShowDialog.dart';
 
 class Profile extends StatefulWidget {
   @override
@@ -24,6 +25,8 @@ class _ProfileState extends State<Profile> {
   final _ageController = TextEditingController(text: SessionAge.toString());
   final _heightController = TextEditingController(text: SessionHeight.toString());
   final _weightController = TextEditingController(text: SessionWeight.toString());
+
+  bool isVerified = false;
 
   // Dialog box
   void _showDialog(String message, int enable){
@@ -69,6 +72,65 @@ class _ProfileState extends State<Profile> {
       print(_response.body);
     }
   }
+  Future<UserInfo> getUser() async {
+    final http.Response _response = await http.get(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/users/get',
+      headers: headers,
+    );
+
+    // If successful login, navigate to homepage.
+    if (_response.statusCode == 200) {
+      var parsedJson = json.decode(_response.body);
+      setState(() {
+        isVerified = parsedJson['isVerified'];
+      });
+      //return UserInfo.fromJson(json.decode(_response.body));
+    }
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
+  Future<UserInfo> resendVerification(dynamic info) async {
+    final http.Response _response = await http.post(
+      'http://localhost3000.us-east-2.elasticbeanstalk.com/api/emails/resendVerificationEmail',
+      headers: headers,
+      body: info,
+    );
+
+    // If successful login, navigate to homepage.
+    if (_response.statusCode == 200) {
+      DialogPopUp(context, "Email has been re-sent!");
+      //return UserInfo.fromJson(json.decode(_response.body));
+    }
+    else {
+      print(_response.statusCode);
+      print(_response.body);
+    }
+  }
+
+  InkWell isNotVerified(){
+    return InkWell(
+      child: Text(
+        "Need to resend verification email?",
+        style: TextStyle(
+            fontSize: 16,
+            color: Colors.deepOrangeAccent
+        ),
+      ),
+      onTap: (){
+        resendVerification(jsonEncode(<String, String>{
+          'receiverEmail' : _emailController.text
+        }));
+        },
+    );
+  }
+
+  void initState()
+  {
+    super.initState();
+    getUser();
+  }
 
   Widget build(BuildContext context){
     return Scaffold(
@@ -102,7 +164,18 @@ class _ProfileState extends State<Profile> {
                   )
               ),
               Padding(
-                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                child: Text("Email verified: $isVerified",
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange
+                    )
+                ),
+              ),
+              isNotVerified(),
+              Padding(
+                  padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
                   child: TextField(
                       onTap: () {
                         setState(() {
