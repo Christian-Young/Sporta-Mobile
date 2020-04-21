@@ -137,8 +137,9 @@ class _ProfileState extends State<Profile> {
       appBar: AppBar(
           title: Text('Profile')
       ),
-      body: Center(
-        child: Column(
+      body: ListView(
+          children: <Widget>[
+        Column(
           mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               Padding(
@@ -266,7 +267,7 @@ class _ProfileState extends State<Profile> {
                 ),
             ],
         )
-      )
+      ])
     );
   }
 }
