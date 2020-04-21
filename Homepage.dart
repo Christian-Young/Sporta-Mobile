@@ -264,11 +264,6 @@ class _Homepage extends State<Homepage>{
   int _matches = 0;
   int _events = 0;
 
-  // Large font style.
-  static const TextStyle largeStyle = TextStyle(
-      fontSize: 30,
-      fontWeight: FontWeight.bold
-  );
   // Initial state. Get the user and details.
   @override
   void initState() {
@@ -320,22 +315,6 @@ class _Homepage extends State<Homepage>{
         bagIDs.add(bagResponseList[i]['_id']);
       }
     }
-    else {
-      print(_response.statusCode);
-      print(_response.body);
-    }
-  }
-  Future<void> deleteBag(dynamic info) async {
-    final http.Response _response = await http.post(
-        'http://localhost3000.us-east-2.elasticbeanstalk.com/api/golf/deleteGolfBag',
-        headers: headers,
-        body: info
-    );
-
-    // If successful login, navigate to homepage.
-    if (_response.statusCode == 200) {
-    }
-    // If it's some other error that the user doesn't need to know about.
     else {
       print(_response.statusCode);
       print(_response.body);
@@ -565,12 +544,20 @@ class _Homepage extends State<Homepage>{
     // If the current index is 2 (events page) return the button.
       return FloatingActionButton(
         onPressed: () {
-          if (_selectedIndex == 0)
-          Navigator.push(context, MaterialPageRoute(builder: (context) => CreateMatch()));
-          else if (_selectedIndex == 1)
+          if (_selectedIndex == 0) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => CreateMatch()));
+
+          }
+          else if (_selectedIndex == 1){
             Navigator.push(context, MaterialPageRoute(builder: (context) => CreateEvent()));
-          else if (_selectedIndex == 2)
+            setState(() {});
+          }
+          else if (_selectedIndex == 2) {
             _simp();
+            setState(() {});
+          }
+
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.deepOrange,
