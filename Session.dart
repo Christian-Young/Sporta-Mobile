@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 
 Map<String, String> headers = {'Content-Type': 'application/json'};
 
@@ -8,6 +9,12 @@ String SessionEmail;
 int SessionAge;
 int SessionHeight;
 int SessionWeight;
+
+// Large font style.
+const TextStyle largeStyle = TextStyle(
+    fontSize: 40,
+    fontWeight: FontWeight.bold
+);
 
 void updateCookie(http.Response response) {
 
